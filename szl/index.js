@@ -6,6 +6,19 @@ const data = [
     { id: '0002', name: 'WEB' },
     { id: '0003', name: 'JAVA' }
 ];
+app.all('*', function (req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+
+    if (req.method == 'OPTIONS') {
+        res.send(200); /让options请求快速返回/
+    }
+    else {
+        next();
+    }
+});
+
 app.get('/courses', function (req, res) {
     res.send(JSON.stringify(data));
 });
@@ -114,37 +127,11 @@ app.post('/user', function (req, res) {
     }
 });
 //app.post('/', function (req, res) { res.send('Got␣a␣POST␣request') });
-app.get('/led/:id', function (req, res) {
-    const id = req.param["id"];
-    var connection = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: '',
-        port: '3306',
-        database: 'web'
-    });
-    connection.connect();
-    let sql = "select*from device";
-    connection.query(sql, function (err, result) {
-        if (err) {
-            console.log('[SELECT ERROR] - ', err.message);
-            res.send('查询失败');
-            return;
-        }
-        const resp = {
-            id: result[0].id,
-            status: result[0].status,
-            customer_status: result[0].customer_status
-        }
 
-        res.send(JSON.stringify(resp));
-    });
-    connection.end();
-});
 
 app.put('/led/:id/:status', function (req, res) {
     const id = req.params["id"];
-    const status = req.param["status"];
+    const status = req.params["status"];
     var connection = mysql.createConnection({
         host: 'localhost',
         user: 'root',
@@ -154,20 +141,162 @@ app.put('/led/:id/:status', function (req, res) {
     });
 
     connection.connect();
-    let sql = "UPDATE device SET status='" + status + "'WHERE id=\'" + id + "\'";
+    let sql = "UPDATE device SET status=" + status + " WHERE id=\'" + id + "\'";
     connection.query(sql, function (err, result) {
         if (err) {
             console.log('[UPDATE ERROR] - ', err.message);
             res.send('修改失败');
             return;
         }
+        let sql2 = "select*from device where id=\'" + id + "\'";
+        connection.query(sql2, function (err, result) {
+            if (err) {
+                console.log('[SELECT ERROR]-', err.message);
+                res.send(JSON.stringify({
+                    succ: false,
+                    msg: '查询失败!'
+                }));
+                return;
+            }
+            const obj = {
+                id: id,
+                status: result[0].customer_status
+            }
+            res.send(JSON.stringify(obj));
+        });
+
+        console.log(sql);
         connection.end();
 
-        const obj = {
-            id: id,
-            status: 1
+    });
+});
+
+app.get('/led/:id', function (req, res) {
+    const id = req.params["id"];
+    var connection = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '',
+        port: '3306',
+        database: 'web'
+    });
+    connection.connect();
+    let sql = "select*from device where id='" + id + "'";
+    connection.query(sql, function (err, result) {
+        if (err) {
+            console.log('[SELECT ERROR] - ', err.message);
+            res.send(JSON.stringify({
+                succ: false,
+                msg: '查询失败!'
+            }));
+            return;
         }
-        res.send(JSON.stringify(obj));
+        const resp = {
+            id: id,
+            status: result[0].status,
+            customer_status: result[0].customer_status
+        }
+
+        res.send(JSON.stringify(resp));
+        connection.end();
+    });
+});
+
+app.post('/led/:id/:status', function (req, res) {
+    const id = req.params["id"];
+    const status = req.params["status"];
+    console.log(status);
+    var connection = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '',
+        port: '3306',
+        database: 'web'
+    });
+    connection.connect();
+    let sql = "UPDATE device SET customer_status=" + status + " WHERE id=\'" + id + "\'";
+    connection.query(sql, function (err, result) {
+        if (err) {
+            console.log('[UPDATE ERROR]-', err.message);
+            res.send('查询失败');
+            res.send(JSON.stringify({
+                succ: false,
+                msg: 'faild'
+            }));
+            return;
+        }
+        res.send(JSON.stringify({
+            succ: true,
+            msg: 'success'
+        }));
+        // let sql2 = "select status from device where id=" + id + ";"
+        // connection.query(sql2, function (err, result) {
+        //     if (err) {
+        //         res.send(JSON.stringify({
+        //             succ: false,
+        //             msg: '失败'
+        //         }));
+        //         return;
+        //     }
+        // });
+    });
+
+});
+
+app.post('/led/:id', function (req, res) {
+    const id = req.params["id"];
+    var connection = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '',
+        port: '3306',
+        database: 'web'
+    });
+    connection.connect();
+    let sql = "INSERT INTO device VALUES('" + id + "',0,0);";
+    connection.query(sql, function (err, result) {
+        if (err) {
+            res.send(JSON.stringify({
+                succ: false,
+                msg: '插入失败'
+            }));
+            return;
+        }
+        res.send(JSON.stringify({
+            succ: true,
+            msg: '插入成功'
+        }));
+        // let sql2 = "select*from device;"
+        // connection.query(sql2, function (err, result) {
+        //     if (err) {
+        //         console.log('失败');
+        //         return;
+        //     }
+        //     res.send(JSON.stringify(result));
+        // });
+    });
+    connection.end();
+});
+
+app.get('/led', function (req, res) {
+    var connection = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '',
+        port: '3306',
+        database: 'web'
+    });
+    connection.connect();
+    var sql = "select*from device;"
+    connection.query(sql, function (err, result) {
+        if (err) {
+            res.send(JSON.stringify({
+                succ: false,
+                msg: '失败'
+            }));
+            return;
+        }
+        res.send(JSON.stringify(result));
     });
 });
 app.use(express.static('dist'));
