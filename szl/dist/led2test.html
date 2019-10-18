@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script>
+        function turnon(status) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    console.log(this.responseText);
+                    const obj = JSON.parse(this.responseText);
+                    if (obj.succ == true) {
+                        alert('成功');
+                    } else {
+                        alert('失败');
+                    }
+                }
+            };
+            xhttp.open("POST", "/led/001/" + status, true);
+            xhttp.send();
+        }
+        function addLED() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    console.log(this.responseText);
+                    const obj = JSON.parse(this.responseText);
+                    if (obj.succ == true) {
+                        alert('成功');
+                    } else {
+                        alert('失败');
+                    }
+                }
+            };
+            const id = document.getElementById('3').value;
+            xhttp.open("POST", "/led/" + id, true);
+            xhttp.send();
+        }
+    </script>
+</head>
+
+<body>
+    <input type="button" value="开" onclick="turnon(1)">
+    <input type="button" value="关" onclick="turnon(0)">
+    <input type="text" id="3" value="001" placeholder="输入ledID号">
+    <input type="button" value="添加led灯" onclick="addLED()">
+</body>
+
+</html>

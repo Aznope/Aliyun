@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>登陆</title>
+    <script>
+        function onLogin() {
+            const nameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('userpassword');
+
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    console.log(this.responseText);
+                    const result = JSON.parse(this.responseText);
+                    const pErr = document.getElementById('errResult');
+                    if (result.succ) {
+                        pErr.innerHTML = result.msg + '登陆成功';
+                    } else {
+                        pErr.innerHTML = result.msg + '登陆失败：';
+                    }
+                }
+            };
+            xhttp.open("POST", "user?name=" + nameInput.value + "&password=" + passwordInput.value, true);
+            xhttp.send();
+        }
+    </script>
+</head>
+
+<body>
+    <form action="./user" method="POST">
+        <p id="errResult"></p>
+        <input type="text" id="username" name="name">
+        <input type="password" id="userpassword" name="password">
+        <input type="button" onclick="onLogin()" value="登陆">
+    </form>
+</body>
+
+</html>
